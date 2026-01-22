@@ -1,0 +1,10 @@
+# Rack Clock Dependencies
+
+# SPI interface for MAX7219
+spidev>=3.5
+
+# MAX7219 LED matrix/7-segment driver
+luma.led_matrix>=1.7.0
+
+# NTP client library
+ntplib>=0.4.0

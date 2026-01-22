@@ -1,0 +1,18 @@
+[Unit]
+Description=Rack Clock NTP Display
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/rack-clock/venv/bin/python /home/pi/rack-clock/clock.py
+WorkingDirectory=/home/pi/rack-clock
+Restart=always
+RestartSec=5
+User=root
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

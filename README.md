@@ -1,0 +1,245 @@
+# Rack Clock
+
+NTP-synchronized clock with 8-digit 7-segment LED display for 10" rack mounting.
+Also serves as an NTP server for local network devices.
+
+**Display Format:** `HH:MM:SS.mm` (hours, minutes, seconds, centiseconds)
+**Time Format:** 24-hour
+
+## Hardware Requirements
+
+| Component | Description | Quantity |
+|-----------|-------------|----------|
+| Raspberry Pi 1/2 | With Ethernet | 1 |
+| MAX7219 8-digit module | 0.36" red 7-segment LED | 1 |
+| Jumper wires | Female-to-female | 5 |
+| 5V power supply | For Pi (2.5A recommended) | 1 |
+
+**Display Module:** [AZ-Delivery MAX7219 8-digit](https://www.az-delivery.uk/products/azdelivery-max7219-led-modul-8-bit-7-segmentanzeige-led-display-fur-arduino-und-raspberry-pi) (£5.00)
+
+## Wiring Diagram
+
+```
+Raspberry Pi                          MAX7219 Module
+    GPIO Header                         (8-digit 7-seg)
+   ┌───────────┐                       ┌─────────────┐
+   │  ·  ·  1  │ (3.3V)               │             │
+   │  2  ·  ·  │────────────────────► │ VCC (5V)    │
+   │  ·  ·  ·  │                       │             │
+   │  6  ·  ·  │────────────────────► │ GND         │
+   │  ·  ·  ·  │                       │             │
+   │  ·  ·  ·  │                       │             │
+   │  ·  ·  ·  │                       │             │
+   │  ·  ·  ·  │                       │             │
+   │  ·  · 19  │────────────────────► │ DIN (Data)  │
+   │  ·  ·  ·  │                       │             │
+   │  ·  · 23  │────────────────────► │ CLK (Clock) │
+   │ 24  ·  ·  │────────────────────► │ CS (Chip Sel│
+   │  ·  ·  ·  │                       │             │
+   └───────────┘                       └─────────────┘
+
+Pin Reference:
+   Pi Pin 2  (5V)         → VCC
+   Pi Pin 6  (GND)        → GND
+   Pi Pin 19 (GPIO10/MOSI)→ DIN
+   Pi Pin 23 (GPIO11/SCLK)→ CLK
+   Pi Pin 24 (GPIO8/CE0)  → CS
+```
+
+## Installation
+
+1. **Clone or copy files to Pi:**
+   ```bash
+   cd ~
+   git clone <repository> rack-clock
+   # or copy files manually to ~/rack-clock/
+   ```
+
+2. **Run the installer:**
+   ```bash
+   cd ~/rack-clock
+   sudo bash install.sh
+   ```
+
+3. **Reboot if SPI was just enabled:**
+   ```bash
+   sudo reboot
+   ```
+
+4. **Start the service:**
+   ```bash
+   sudo systemctl start rack-clock
+   ```
+
+## Usage
+
+### Service Commands
+
+```bash
+# Start the clock
+sudo systemctl start rack-clock
+
+# Stop the clock
+sudo systemctl stop rack-clock
+
+# Check status
+sudo systemctl status rack-clock
+
+# View logs
+sudo journalctl -u rack-clock -f
+
+# Disable auto-start on boot
+sudo systemctl disable rack-clock
+
+# Re-enable auto-start
+sudo systemctl enable rack-clock
+```
+
+### NTP Server
+
+The Pi runs `chrony` as an NTP server, allowing other devices on your network to sync time from it.
+
+```bash
+# Check NTP sync status
+chronyc tracking
+
+# View connected NTP clients
+chronyc clients
+
+# Check NTP sources
+chronyc sources -v
+```
+
+**Client Configuration:** Point your network devices to the Pi's IP address as their NTP server.
+
+**Allowed Networks:** By default, the following private networks can query NTP:
+- 192.168.0.0/16
+- 10.0.0.0/8
+- 172.16.0.0/12
+
+Edit `/etc/chrony/chrony.conf` to adjust allowed networks.
+
+### Manual Testing
+
+```bash
+cd ~/rack-clock
+
+# Test display only
+./venv/bin/python display.py
+
+# Test NTP sync only
+./venv/bin/python ntp_sync.py
+
+# Run clock manually (Ctrl+C to stop)
+./venv/bin/python clock.py
+```
+
+## Configuration
+
+Edit `config.py` to customize:
+
+```python
+# NTP servers (in order of preference)
+NTP_SERVERS = [
+    "pool.ntp.org",
+    "time.google.com",
+    ...
+]
+
+# Display brightness (0-15)
+DISPLAY_BRIGHTNESS = 8
+
+# Update rate (Hz)
+UPDATE_RATE_HZ = 100
+```
+
+**Timezone:** The clock uses the OS timezone. Change with:
+```bash
+sudo timedatectl set-timezone Europe/London
+```
+
+## 3D Printed Enclosure
+
+### 10" Rack Mount Dimensions
+
+- **Total Width:** 254mm (10" / half-rack standard)
+- **Mounting Width:** 222.25mm (between rack ears)
+- **Height:** 1U = 44.45mm
+- **Depth:** 100mm minimum
+
+### Display Cutout
+
+- **Module dimensions:** ~130mm x 40mm
+- **Cutout:** ~125mm x 35mm (display area only)
+- **Position:** Centered horizontally and vertically
+
+### Rack Ear Mounting Holes
+
+- Hole diameter: 6.35mm (1/4")
+- Horizontal: 15.875mm from panel edge
+- Vertical: 15.875mm from top/bottom edges
+
+### Rear Panel Openings
+
+- Ethernet: 16mm x 14mm
+- Power (micro USB): 8mm x 3mm
+- Ventilation slots recommended
+
+## Troubleshooting
+
+### Display shows nothing
+1. Check wiring connections
+2. Verify SPI is enabled: `ls /dev/spi*` should show devices
+3. Check service logs: `sudo journalctl -u rack-clock`
+
+### Display shows `--:--:--:--`
+- Clock is waiting for NTP sync
+- Check network connection
+- Verify NTP servers are reachable: `ntpdate -q pool.ntp.org`
+
+### Time is wrong
+1. Check timezone settings on Pi: `timedatectl`
+2. Change timezone: `sudo timedatectl set-timezone Europe/London`
+3. List all timezones: `timedatectl list-timezones`
+
+### Service won't start
+```bash
+# Check for errors
+sudo systemctl status rack-clock
+sudo journalctl -u rack-clock --no-pager
+
+# Test manually
+cd ~/rack-clock
+sudo ./venv/bin/python clock.py
+```
+
+### NTP server not working
+```bash
+# Check chrony status
+sudo systemctl status chrony
+
+# Verify chrony is listening
+sudo ss -ulnp | grep chronyd
+
+# Test from another device
+ntpdate -q <pi-ip-address>
+```
+
+## Files
+
+```
+rack-clock/
+├── clock.py           # Main application
+├── display.py         # MAX7219 display driver
+├── ntp_sync.py        # NTP synchronization (client)
+├── config.py          # Configuration settings
+├── chrony.conf        # NTP server configuration
+├── requirements.txt   # Python dependencies
+├── install.sh         # Setup script
+├── rack-clock.service # systemd service (template)
+└── README.md          # This file
+```
+
+## License
+
+MIT License
