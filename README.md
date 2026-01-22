@@ -3,8 +3,21 @@
 NTP-synchronized clock with 8-digit 7-segment LED display for 10" rack mounting.
 Also serves as an NTP server for local network devices.
 
-**Display Format:** `HH:MM:SS.mm` (hours, minutes, seconds, centiseconds)
-**Time Format:** 24-hour
+## Features
+
+- **Accurate time** - Syncs from multiple NTP servers (pool.ntp.org, time.google.com, etc.)
+- **High refresh rate** - 100Hz display update for smooth centisecond display
+- **NTP server** - Serves time to other devices on your local network via chrony
+- **24-hour format** - Display format: `HH:MM:SS.mm` (centiseconds)
+- **Auto-start** - systemd service starts on boot
+- **Resilient** - Falls back to system time if NTP unavailable, auto-reconnects
+
+## How It Works
+
+1. **NTP Client** (`ntp_sync.py`) - Queries upstream NTP servers every 60 seconds and calculates offset from system time
+2. **Display Driver** (`display.py`) - Controls MAX7219 8-digit 7-segment display via SPI
+3. **Main Loop** (`clock.py`) - Updates display at 100Hz with NTP-corrected time
+4. **NTP Server** (`chrony`) - Allows other network devices to sync from this clock
 
 ## Hardware Requirements
 
@@ -48,11 +61,11 @@ Pin Reference:
 
 ## Installation
 
-1. **Clone or copy files to Pi:**
+1. **Clone the repository to Pi:**
    ```bash
    cd ~
-   git clone <repository> rack-clock
-   # or copy files manually to ~/rack-clock/
+   git clone https://github.com/timbiddulph/rack-clock.git
+   cd rack-clock
    ```
 
 2. **Run the installer:**
@@ -237,9 +250,10 @@ rack-clock/
 ├── requirements.txt   # Python dependencies
 ├── install.sh         # Setup script
 ├── rack-clock.service # systemd service (template)
+├── LICENSE            # MIT License
 └── README.md          # This file
 ```
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) file for details.
