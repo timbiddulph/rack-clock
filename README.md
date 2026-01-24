@@ -24,11 +24,11 @@ Also serves as an NTP server for local network devices.
 | Component | Description | Quantity |
 |-----------|-------------|----------|
 | Raspberry Pi 1/2 | With Ethernet | 1 |
-| MAX7219 8-digit module | 0.36" red 7-segment LED | 1 |
+| MAX7219 8-digit module | 0.36" green 7-segment LED | 1 |
 | Jumper wires | Female-to-female | 5 |
 | 5V power supply | For Pi (2.5A recommended) | 1 |
 
-**Display Module:** [AZ-Delivery MAX7219 8-digit](https://www.az-delivery.uk/products/azdelivery-max7219-led-modul-8-bit-7-segmentanzeige-led-display-fur-arduino-und-raspberry-pi) (£5.00)
+**Display Module:** [MAX7219 8-digit 7-segment display (green)](https://www.aliexpress.com/item/1005004869898587.html) - select green option. Also available in red, blue, yellow, and white.
 
 ## Wiring Diagram
 
@@ -180,10 +180,14 @@ sudo timedatectl set-timezone Europe/London
 - **Height:** 1U = 44.45mm
 - **Depth:** 100mm minimum
 
-### Display Cutout
+### Display Module Dimensions
 
-- **Module dimensions:** ~130mm x 40mm
-- **Cutout:** ~125mm x 35mm (display area only)
+![Module dimensions](https://ae01.alicdn.com/kf/Sef9a7510af8f4908b2061173710f37cd6.jpg)
+
+- **PCB dimensions:** 71.57mm x 16.75mm
+- **Display area:** 56.87mm x ~8.4mm
+- **Cutout (recommended):** 60mm x 12mm (with ~1mm clearance)
+- **Mounting holes:** 3.0mm from edges, ~3.3mm diameter
 - **Position:** Centered horizontally and vertically
 
 ### Rack Ear Mounting Holes
